@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 from tensorflow.contrib.layers import fully_connected, linear, dropout
 
 
@@ -24,17 +25,17 @@ class fullyConnectedNN():
         self.y = y
 
 
-    def build_placeholders(self, training_size):
+    def build_placeholders(self):
         """ Here we build placeholders. The methods creates new tensorflow
         objects of the fullyConnectedNN class, which are necessary for the
         fit method
-        Parameters :
-            training_size, number of training points
+        # Parameters :
+        #     training_size, number of training points
         """
-        n_classes = np.unique(self.y).size
-        self.X_tensorflow = tf.placeholder(tf.float64, shape=[training_size,
+        # n_classes = np.unique(self.y).size
+        self.X_tensorflow = tf.placeholder(tf.float64, shape=[None,
             self.X.shape[1]])
-        self.y_tensorflow = tf.placeholder(tf.int32, shape=[training_size])
+        self.y_tensorflow = tf.placeholder(tf.int32, shape=[None])
 
 
     def initialize_weights(self):
@@ -207,7 +208,7 @@ class fullyConnectedNN():
         # we call init_weights and then we pass this matrix to all the following
         # methods in order to get a fair comparison of the different network_types
         init_weights = self.initialize_weights()
-        self.build_placeholders(n_train)
+        self.build_placeholders()
 
         if network_type == "no":
             loss, pred = self.build_no_regularization(init_weights)
