@@ -33,8 +33,8 @@ def main():
     min_p = 10; max_p = 100
     n_points = 16; repetition = 20
     test_points = int(1e4)
-    sample_dim = np.arange(min_n, max_n, n_points)
-    feature_dim = np.arange(min_p, max_p, n_points)
+    sample_dim = np.linspace(min_n, max_n, n_points).astype("int")
+    feature_dim = np.linspace(min_p, max_p, n_points).astype("int")
     architecture = np.array([20, 10, 4])
 
     results = np.zeros((n_points, n_points, repetition, 2))
