@@ -48,7 +48,7 @@ def main():
                 #     redund=p-informative_p, info=informative_p, classes=n_classes)
                 data, label = make_dataset(n + test_points, p)
                 fc = fullyConnectedNN(architecture, data, label)
-                loss_train, loss_test, y_t, y_p = fc.fit(n, network_type="no", beta=1.)
+                loss_train, loss_test, y_t, y_p = fc.fit(n, network_type="no", beta=0.)
                 accuracy = accuracy_score(y_t, y_p)
                 print("accuracy: " + str(accuracy))
                 results[np.where(n == sample_dim)[0][0],
