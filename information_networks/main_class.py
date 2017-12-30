@@ -19,7 +19,6 @@ def classification_function(x):
 
 
 def make_dataset(n, p):
-    # informative features : 10
     # classes : 2
     n_informative = 9
     X = np.random.uniform(-1, 1, size=(n, p))
