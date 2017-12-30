@@ -33,11 +33,11 @@ def main():
     min_p = 10; max_p = 100
     n_points = 16; repetition = 20
     test_points = int(1e4)
-    sample_dim = np.linspace(min_n, max_n, n_points).astype("int32")
-    feature_dim = np.linspace(min_p, max_p, n_points).astype("int32")
+    sample_dim = np.arange(min_n, max_n, n_points)
+    feature_dim = np.arange(min_p, max_p, n_points)
     architecture = np.array([20, 10, 4])
 
-    results = np.zeros((n_points, n_points, repetition, 2))
+    results = np.zeros((sample_dim.size, feature_dim.size, repetition, 2))
 
     for r in range(repetition):
         for p in feature_dim:
@@ -54,7 +54,7 @@ def main():
                 results[np.where(n == sample_dim)[0][0],
                     np.where(p == feature_dim)[0][0], r, :] = accuracy, loss_train
                 # print("accuracy = "+str(accuracy))
-    np.save("results_finer_res.npy", results)
+    np.save("results.npy", results)
 
 
 if __name__ == '__main__':
