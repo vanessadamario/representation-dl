@@ -43,7 +43,7 @@ def make_dataset(n, p):
     return X, y
 
 
-def poly_datagen_with_network(n, informative_p, h=20):
+def poly_dataset_network(n, informative_p, h=20):
 
     """
     Function for the generation of a binary classification dataset. Here we
@@ -93,13 +93,3 @@ def poly_datagen_with_network(n, informative_p, h=20):
     np.save("w2.npy", w2)
 
     return X, y
-    
-    # train_point = np.array([2, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90])
-    # train_point = np.append(train_point, np.arange(100, max_train_point, 100))
-    #
-    # p = np.linspace(0, 300, 30).astype("int")
-    # fc = fullyConnectedNN(architecture, X, y)
-    #
-    # loss_train, loss_test, y_t, y_p = fc.fit(train_point, "poly")
-    # f1 = f1_score(y_t, y_p)
-    # print("\nf1 score: " + str(f1))
