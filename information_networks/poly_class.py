@@ -20,7 +20,8 @@ def main():
     print(X.shape)
 
     architecture = 80
-    sample_dim = np.arange(min_n, max_n, n_points)  # training set dimension
+    sample_dim = np.arange(min_n_train, max_n_train, n_points)
+    # training set dimension
     feature_dim = np.arange(min_p, max_p, n_points)  # feature set dimension
     test_points = n - max_n_train
 
