@@ -19,7 +19,7 @@ def main():
     X = np.hstack((X, np.random.randn(n,  max_p - informative_p)))
     print(X.shape)
 
-    architecture = 80
+    architecture = 40
     sample_dim = np.arange(min_n_train, max_n_train, n_points)
     # training set dimension
     feature_dim = np.arange(min_p, max_p, n_points)  # feature set dimension

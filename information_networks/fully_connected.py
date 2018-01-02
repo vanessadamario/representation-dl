@@ -104,13 +104,12 @@ class fullyConnectedNN():
             probability to belong to a specific class)
         """
 
-        if self.architecture.size > 1:
+        if np.array(self.architecture).size > 1:
             print("shallow network, architecture must have scalar dimension")
             exit(-2)
 
         n_classes = np.unique(self.y).size  # this gives the number of classes
-        w = tf.get_variable("weights", shape=(self.X.shape[1], self.architecture[0]),
-            initializer=tf.constant_initializer(init_weights[0]), dtype=tf.float64)
+        w = tf.Variable(tf.convert_to_tensor(init_weights[0], dtype=tf.float64))
         network = (tf.matmul(self.X_tensorflow, w))**2
         # then we compute logits, so we use a final linear transformation
         logits = linear(network, n_classes,
