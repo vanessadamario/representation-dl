@@ -65,6 +65,7 @@ class fullyConnectedNN():
     def build_no_regularization(self, init_weights):
         """
         This method builds the fully connected network, with no regularization
+        and ReLU activation functions
         Parameters:
             init_weights, the initial value of the weights
         Returns:
@@ -90,6 +91,35 @@ class fullyConnectedNN():
             labels=self.y_tensorflow, logits=logits))
         return loss, tf.nn.softmax(logits)
 
+
+    def build_polynomial(self, init_weights):
+        """
+        This method builds the fully connected network, with polynomial
+        activation, without regularization
+        Parameters:
+            init_weights, the initial value of the weights
+        Returns:
+            loss, tf object cross entropy
+            tf.nn.softmax(logits), the output of the network (vector of
+            probability to belong to a specific class)
+        """
+
+        if self.architecture.size > 1:
+            print("shallow network, architecture must have scalar dimension")
+            exit(-2)
+
+        n_classes = np.unique(self.y).size  # this gives the number of classes
+        w = tf.get_variable("weights", shape=(self.X.shape[1], self.architecture[0]),
+            initializer=tf.constant_initializer(init_weights[0]), dtype=tf.float64)
+        network = (tf.matmul(self.X_tensorflow, w))**2
+        # then we compute logits, so we use a final linear transformation
+        logits = linear(network, n_classes,
+            weights_initializer=tf.constant_initializer(init_weights[-1]))
+        # we compute the loss function, by doing the mean of the cross entropy
+        # given X, y
+        loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
+            labels=self.y_tensorflow, logits=logits))
+        return loss, tf.nn.softmax(logits)
 
     def build_bernoulli_dropout(self, init_weights, p_bernoulli, where=-1):
         """
@@ -188,6 +218,7 @@ class fullyConnectedNN():
             network_type, "no" - fully connected network without regularization,
             "dropout" fully connected network with bernoullian dropout,
             "information" fully connected network with information dropout
+            "poly" polynomial degree 2 shallow network, no regularization
             beta, regularization parameter (iff network_type=="information")
             p_drop, bernoullian probability of dropout (iff network_type=="dropout")
             n_iters, number of max iterations
@@ -221,6 +252,10 @@ class fullyConnectedNN():
         elif network_type == "dropout":
             loss, pred = self.build_bernoulli_dropout(init_weights, p_drop,
                 where)
+            beta, information = np.zeros(2)
+
+        elif network_type == "poly":
+            loss, pred = self.build_polynomial(init_weights)
             beta, information = np.zeros(2)
 
         else:
