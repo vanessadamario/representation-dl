@@ -9,16 +9,26 @@ def main():
     n = int(1e4)
     informative_p = 10
 
-    X, y = poly_dataset_network(n,informative_p, h=20)
+    # X, y = poly_dataset_network(n,informative_p, h=20)
+    X = np.load("informative_X.npy")
+    y = np.load("informative_y.npy")
 
     min_n_train = 8; max_n_train = 200
     min_p = 10; max_p = 100
     n_points = 16; repetition = 20
 
-    # we add the non informative features here
-    X = np.hstack((X, np.random.randn(n,  max_p - informative_p)))
+    #  we add the non informative features here
+    #####  this is the case where we add noise to our sample -
+    #####  uninformative features
+    #####  X = np.hstack((X, np.random.randn(n,  max_p - informative_p)))
+
+    #####  let's repeat the experiments with redundant features
+    linear_transf = np.random.randn(informative_p, max_p - informative_p)
+    linear_combination_X = np.dot(X, linear_transf)
+    X = np.hstack((X, linear_combination_X))
     print(X.shape)
 
+    return
     architecture = 40
     sample_dim = np.arange(min_n_train, max_n_train, n_points)
     # training set dimension
@@ -39,7 +49,8 @@ def main():
                 accuracy = accuracy_score(y_true=y_t,y_pred=y_p)
                 results[idx_n, idx_p, r, :] = accuracy, loss_train
 
-    np.save("poly_results.npy", results)
+    #####  np.save("poly_results.npy", results)  res for uninformative features
+    np.save("poly_results_redundant.npy", results)
 
 
 if __name__ == '__main__':

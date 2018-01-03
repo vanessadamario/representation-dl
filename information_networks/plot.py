@@ -12,7 +12,7 @@ sample_dim = np.arange(min_n, max_n, n_points)
 feature_dim = np.arange(min_p, max_p, n_points)
 
 
-results = np.load("results.npy")
+results = np.load("poly_results.npy")
 new_results = np.zeros((sample_dim.size, feature_dim.size, repetition, 2))
 
 for i in range(sample_dim.size):
