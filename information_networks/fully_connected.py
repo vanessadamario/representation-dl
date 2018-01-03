@@ -283,7 +283,7 @@ class fullyConnectedNN():
             y_pred = sess.run(tf.argmax(pred, 1), {self.X_tensorflow: X_test})
 
         if network_type == "information":
-            return loss_train_value, loss_test_value, y_test, y_pred, information
+            return loss_train_value, loss_test_value, y_test, y_pred, information_value
 
         else:
             return loss_train_value, loss_test_value, y_test, y_pred
