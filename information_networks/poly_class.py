@@ -26,9 +26,7 @@ def main():
     linear_transf = np.random.randn(informative_p, max_p - informative_p)
     linear_combination_X = np.dot(X, linear_transf)
     X = np.hstack((X, linear_combination_X))
-    print(X.shape)
 
-    return
     architecture = 40
     sample_dim = np.arange(min_n_train, max_n_train, n_points)
     # training set dimension
