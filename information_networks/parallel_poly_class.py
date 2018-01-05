@@ -18,7 +18,8 @@ def main(argv):
     n_features = int(argv[2])
     max_n_train = 200
 
-    repetition = 2
+    repetition = 20
+    save_path = "./redundantX_architecture80/"
 
     values = 2  # accuracy, loss on training set
     results = np.zeros((repetition, values))
@@ -35,8 +36,8 @@ def main(argv):
         results[r, :] = accuracy, loss_train
         track_loss_train_repetition.append(track_loss_train)
     track_loss_train_repetition = np.array(track_loss_train_repetition)
-    np.save("track_loss_"+argv[1]+"_"+argv[2]+".npy", track_loss_train_repetition)
-    np.save("results_"+argv[1]+"_"+argv[2]+".npy", results)
+    np.save(save_path + "track_loss_"+argv[1]+"_"+argv[2]+".npy", track_loss_train_repetition)
+    np.save(save_path + "results_"+argv[1]+"_"+argv[2]+".npy", results)
 
 
 if __name__ == '__main__':
