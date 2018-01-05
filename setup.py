@@ -7,17 +7,15 @@ from setuptools import setup
 # from representation-dl import __version__ as version
 
 setup(
-    name='representation-dl',
+    name='information_networks',
     # version=version,
 
     description=(''),
     long_description=open('README.md').read(),
-    author='Vanessa D\'Amario,
+    author='Vanessa D\'Amario',
     author_email='vanessa.damario@dibris.unige.it',
     maintainer='Vanessa D\'Amario',
     maintainer_email='vanessa.damario@dibris.unige.it',
-    # url='https://github.com/slipguru/representation-dl',
-    # download_url='https://github.com/slipguru/representation-dl/tarball/'+version,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
