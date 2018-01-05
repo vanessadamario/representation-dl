@@ -21,7 +21,7 @@ def main(argv):
     repetition = 20
     save_path = "./redundantX_architecture80/"
 
-    values = 2  # accuracy, loss on training set
+    values = 3  # accuracy, loss on training set, loss on test set
     results = np.zeros((repetition, values))
     track_loss_train_repetition = []
 
@@ -33,7 +33,7 @@ def main(argv):
         loss_train, loss_test, y_t, y_p, track_loss_train = fc.fit(n_samples,
             "poly", check_training_loss=True)
         accuracy = accuracy_score(y_true=y_t,y_pred=y_p)
-        results[r, :] = accuracy, loss_train
+        results[r, :] = accuracy, loss_train, loss_test
         track_loss_train_repetition.append(track_loss_train)
     track_loss_train_repetition = np.array(track_loss_train_repetition)
     np.save(save_path + "track_loss_"+argv[1]+"_"+argv[2]+".npy", track_loss_train_repetition)
