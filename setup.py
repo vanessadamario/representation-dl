@@ -31,7 +31,7 @@ setup(
     ],
     license='FreeBSD',
 
-    packages=['information_networks'],  # , 'information_networks.core', 'information_networks.utils', 'information_networks.externals'],
+    packages=['information_networks'],
     install_requires=['numpy (>=1.10.1)',
                       'scipy (>=0.16.1)',
                       'scikit-learn (>=0.18)',
