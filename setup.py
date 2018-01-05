@@ -4,11 +4,11 @@
 from setuptools import setup
 
 # Package Version
-from representation-dl import __version__ as version
+# from representation-dl import __version__ as version
 
 setup(
     name='representation-dl',
-    version=version,
+    # version=version,
 
     description=(''),
     long_description=open('README.md').read(),
@@ -33,7 +33,7 @@ setup(
     ],
     license='FreeBSD',
 
-    packages=['representation-dl', 'representation-dl.core', 'representation-dl.utils', 'representation-dl.externals'],
+    packages=['information_networks', 'information_networks.core', 'information_networks.utils', 'information_networks.externals'],
     install_requires=['numpy (>=1.10.1)',
                       'scipy (>=0.16.1)',
                       'scikit-learn (>=0.18)',
