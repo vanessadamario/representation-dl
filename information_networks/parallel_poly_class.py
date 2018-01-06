@@ -7,7 +7,8 @@ from sklearn.metrics import accuracy_score
 
 def main(argv):
 
-    X = np.load("redundant_X.npy")
+    # X = np.load("redundant_X.npy")  # redundant case
+    X = np.load("noisy_X.npy")  # noisy case
     y = np.load("informative_y.npy")
     n = X.shape[0]
     informative_p = 10
@@ -19,7 +20,8 @@ def main(argv):
     max_n_train = 200
 
     repetition = 20
-    save_path = "./redundantX_architecture80/"
+    # save_path = "./redundantX_architecture80/"  # path for redundant features
+    save_path = "./noisyX_architecture80/"  # path for noisy features
 
     values = 3  # accuracy, loss on training set, loss on test set
     results = np.zeros((repetition, values))
