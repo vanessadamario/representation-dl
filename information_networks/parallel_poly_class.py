@@ -13,15 +13,15 @@ def main(argv):
     n = X.shape[0]
     informative_p = 10
 
-    architecture = 80
+    architecture = 40
 
     n_samples = int(argv[1])
     n_features = int(argv[2])
     max_n_train = 200
 
     repetition = 20
-    # save_path = "./redundantX_architecture80/"  # path for redundant features
-    save_path = "./noisyX_architecture80/"  # path for noisy features
+    # save_path = "./redundantX_architecture40/"  # path for redundant features
+    save_path = "./noisyX_architecture40/"  # path for noisy features
 
     values = 3  # accuracy, loss on training set, loss on test set
     results = np.zeros((repetition, values))
