@@ -210,7 +210,7 @@ class fullyConnectedNN():
         return loss, kl, tf.nn.softmax(logits)
 
 
-    def fit(self, n_train, network_type="no", beta=0., p_drop=0.5, n_iters=int(2e3), grad_step=1e-2, where=-1, check_training_loss=False):
+    def fit(self, n_train, network_type="no", beta=0., p_drop=0.5, n_iters=int(2e3), grad_step=1e-2, where=-1, check_training_loss=False, check_test_loss=False):
         """ This method fit the data set with the fully connected architecture
         Parameters:
             n_train, # training samples
@@ -225,6 +225,9 @@ class fullyConnectedNN():
             where, where to apply the regularizer, by default to the last layer
             check_training_loss (bool), if True, the 40 values of the training
             loss are returned, equally distributed between 0 and n_iters
+            check_test_loss (bool), if True, the 40 values equally distributed
+            between 0 and n_itersdurning training phase are returned, relative
+            to the loss value on the test set
         Returns:
             loss_train_value, cross entropy value on the training set
             loss_test_value, cross entropy value on the test set
@@ -271,6 +274,8 @@ class fullyConnectedNN():
         step_width_btw_control = n_iters / 40  # useful if check_training_loss is true
         if check_training_loss:
             track_training_loss = np.array([])
+        if check_test_loss:
+            track_test_loss = np.array([])
 
         with tf.Session() as sess:
             sess.run(init_op)
@@ -285,6 +290,11 @@ class fullyConnectedNN():
                         self.y_tensorflow: y_train})
                     track_training_loss = np.append(track_training_loss,
                         tmp_training_loss)
+                if np.logical_and(i % step_width_btw_control == 0, check_test_loss):
+                    tmp_test_loss = sess.run(loss, {self.X_tensorflow:
+                        X_test, self.y_tensorflow:y_test})
+                    track_test_loss = np.append(track_test_loss,
+                        tmp_test_loss)
 
             loss_train_value = sess.run(loss, {self.X_tensorflow: X_train,
                 self.y_tensorflow: y_train})
@@ -304,7 +314,11 @@ class fullyConnectedNN():
                 return loss_train_value, loss_test_value, y_test, y_pred, information_value
 
         else:
-            if check_training_loss:
+            if check_training_loss and (not check_test_loss):
                 return loss_train_value, loss_test_value, y_test, y_pred, track_training_loss
+            elif check_test_loss and check_training_loss:
+                return loss_train_value, loss_test_value, y_test, y_pred, track_training_loss, track_test_loss
+            elif not(track_training_loss) and track_test_loss:
+                return loss_train_value, loss_test_value, y_test, y_pred, track_test_loss
             else:
                 return loss_train_value, loss_test_value, y_test, y_pred
