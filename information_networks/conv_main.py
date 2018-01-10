@@ -1,13 +1,13 @@
 # TODO: track the values of the loss during traning (early stopping ?)
 #     : the initialization of the weights seems not to affect dramatically the
 #       results, we always check the convergence of the training loss
-#     : is the representation we are getting translational invariant?
 
 import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import StratifiedShuffleSplit
 from tensorflow.contrib.layers import flatten, linear
 from information_networks.signal_generation import signal_gen
+from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 
 
@@ -22,12 +22,12 @@ def main():
         length_patterns, noise=0.1)
 
     X = np.reshape(X, newshape=(X.shape[0], X.shape[1], 1))
-    plt.plot(X[0, :])
-    plt.plot(X[1, :])
-    plt.plot(X[2, :])
-    plt.show()
+    # plt.plot(X[0, :])
+    # plt.plot(X[1, :])
+    # plt.plot(X[2, :])
+    # plt.show()
     #   training - test sets
-    train_points = 100
+    train_points = 200
     perc_train = float(train_points)/sample_size
     sss = StratifiedShuffleSplit(n_splits=2, train_size=perc_train,
         test_size=1-perc_train)
@@ -62,7 +62,7 @@ def main():
     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
         logits=logits)
     # loss function with softmax computed internally
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=1e-4)
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=1e-3)
     # optimize it with gradient descent or other methods (Adam, SGD)
     train = optimizer.minimize(loss)
     # train the model
@@ -77,17 +77,21 @@ def main():
             labels: y_train})
         test_loss_value = sess.run(loss, feed_dict={signals: X_test,
             labels: y_test})
+        y_pred = sess.run(tf.argmax(tf.nn.softmax(tf.reshape(logits,
+            shape=[y_test.shape[0], n_classes])), 1), {signals:X_test})
+        print("convolution shape", sess.run(tf.shape(convolution), {signals:X_train}))
+    accuracy = accuracy_score(y_test, y_pred)
     print("\nCONVOLUTIONAL MODEL")
     print("loss values on training set: "+str(np.mean(train_loss_value)))
     print("loss values on test set: "+str(np.mean(test_loss_value)))
-
+    print("accuracy over test set: "+str(accuracy)+"; chance 0.33")
     ############################################################################
     #                       linear algo
     init_linear_weights = tf.random_normal([features, n_classes])
     linear_output = linear(tf.reshape(signals, [-1, 1, features]), n_classes)
     loss_linear_model = tf.nn.sparse_softmax_cross_entropy_with_logits(
         labels=labels, logits=linear_output)
-    optimizer_linear_model = tf.train.GradientDescentOptimizer(learning_rate=1e-3)
+    optimizer_linear_model = tf.train.GradientDescentOptimizer(learning_rate=1e-2)
     train_linear_model = optimizer_linear_model.minimize(loss_linear_model)
 
     init_op = tf.global_variables_initializer()
@@ -100,13 +104,16 @@ def main():
             feed_dict={signals: X_train, labels: y_train})
         test_loss_value = sess.run(loss, feed_dict={signals: X_test,
             labels: y_test})
+        y_pred = sess.run(tf.argmax(tf.nn.softmax(tf.reshape(linear_output,
+            shape=[y_test.shape[0], n_classes])), 1), {signals:X_test})
+    accuracy = accuracy_score(y_test, y_pred)
     print("\nLINEAR MODEL")
     print("loss values on training set: "+str(np.mean(train_loss_value)))
     print("loss values on test set: "+str(np.mean(test_loss_value)))
+    print("accuracy over test set: "+str(accuracy)+"; chance 0.33")
 
     ############################################################################
     #                       plots
-    path_save_fig = "/Users/vanessa/Desktop/"
     # warning : this is useful if the n_classes == 3
     f1, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True)
     ax1.plot(X[0, :], label="class 1")
@@ -115,7 +122,7 @@ def main():
     ax2.plot(X[sample_size/2+1, :])
     ax3.plot(X[-2, :], label="class 3")
     ax3.plot(X[-1, :])
-    plt.savefig(path_save_fig + "signals.png")
+    plt.savefig("signals.png")
     plt.close()
 
     # warning : this works only for the specifics given for the dataset & model
@@ -130,7 +137,7 @@ def main():
 
         axarr[1, i].plot(filters_values[:, 0, i], label="filters "+str(i))
     plt.legend()
-    plt.savefig(path_save_fig + "truePatterns_convWeights.png")
+    plt.savefig("truePatterns_convWeights.png")
     plt.show()
     plt.close()
 
