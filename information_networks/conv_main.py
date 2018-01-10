@@ -18,14 +18,17 @@ def main():
     #   dataset
     sample_size = int(1e4); features = 1000; n_classes = 3
     p_pattern = np.array([3, 4, 2]); length_patterns = 50
-    X, y, patterns = signal_gen(sample_size, features, n_classes, p_pattern,
-        length_patterns, noise=0.1)
+    noise_array = np.linspace(0., 50, 15)
 
+    noiseless_X, y, patterns = signal_gen(sample_size, features, n_classes,
+        p_pattern, length_patterns, noise=0.)
+
+    X = noiseless_X + noise_array[-1] * np.random.randn(noiseless_X.shape[0], features)
     X = np.reshape(X, newshape=(X.shape[0], X.shape[1], 1))
-    # plt.plot(X[0, :])
-    # plt.plot(X[1, :])
-    # plt.plot(X[2, :])
-    # plt.show()
+    plt.plot(X[0, :])
+    plt.plot(X[1, :])
+    plt.plot(X[2, :])
+    plt.show()
     #   training - test sets
     train_points = 200
     perc_train = float(train_points)/sample_size
@@ -39,7 +42,7 @@ def main():
     #   convolutional model characteristics
     n_filters = 10
     length_filter = 50
-    n_iters = int(1e3)
+    n_iters = int(2e3)
 
     #   build placeholders
     signals = tf.placeholder(tf.float32)
@@ -62,7 +65,7 @@ def main():
     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels,
         logits=logits)
     # loss function with softmax computed internally
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=1e-3)
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=5e-7)
     # optimize it with gradient descent or other methods (Adam, SGD)
     train = optimizer.minimize(loss)
     # train the model
@@ -79,7 +82,6 @@ def main():
             labels: y_test})
         y_pred = sess.run(tf.argmax(tf.nn.softmax(tf.reshape(logits,
             shape=[y_test.shape[0], n_classes])), 1), {signals:X_test})
-        print("convolution shape", sess.run(tf.shape(convolution), {signals:X_train}))
     accuracy = accuracy_score(y_test, y_pred)
     print("\nCONVOLUTIONAL MODEL")
     print("loss values on training set: "+str(np.mean(train_loss_value)))
@@ -120,26 +122,31 @@ def main():
     ax1.plot(X[1, :])
     ax2.plot(X[sample_size/2, :], label="class 2")
     ax2.plot(X[sample_size/2+1, :])
-    ax3.plot(X[-2, :], label="class 3")
-    ax3.plot(X[-1, :])
+    ax3.plot(X[-10, :], label="class 3")
+    ax3.plot(X[-11, :])
+    plt.legend()
     plt.savefig("signals.png")
     plt.close()
 
     # warning : this works only for the specifics given for the dataset & model
-    f2, axarr = plt.subplots(2, 10)
+    # f2, axarr = plt.subplots(2, 10)
+    # for i in range(n_filters):
+    #     if i < p_pattern[0]:
+    #         axarr[0, i].plot(patterns[0][i, :], 'r')
+    #     elif np.logical_and(i >= 3, i < 7):
+    #         axarr[0, i].plot(patterns[1][i-3, :], 'b')
+    #     elif np.logical_and(i >= 7, i < 9):
+    #         axarr[0, i].plot(patterns[2][i-7, :], 'g')
+    #
+    #     axarr[1, i].plot(filters_values[:, 0, i], label="filters "+str(i))
+    # plt.legend()
+    # plt.savefig("truePatterns_convWeights.png")
+    # plt.show()
+    # plt.close()
     for i in range(n_filters):
-        if i < p_pattern[0]:
-            axarr[0, i].plot(patterns[0][i, :], 'r')
-        elif np.logical_and(i >= 3, i < 7):
-            axarr[0, i].plot(patterns[1][i-3, :], 'b')
-        elif np.logical_and(i >= 7, i < 9):
-            axarr[0, i].plot(patterns[2][i-7, :], 'g')
-
-        axarr[1, i].plot(filters_values[:, 0, i], label="filters "+str(i))
-    plt.legend()
-    plt.savefig("truePatterns_convWeights.png")
-    plt.show()
-    plt.close()
+        plt.plot(filters_values[:, 0, i], label="filter " + str(i))
+        plt.savefig("noise_"+str(noise)+"_filter_"+str(i)+".png")
+        plt.close()
 
     return
 

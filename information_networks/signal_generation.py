@@ -1,6 +1,5 @@
-# TODO: gaussian amplitude / dilation
-# TODO: remove the sum of patterns
-# TODO: random uniform translation
+# TODO: gaussian dilation
+
 import numpy as np
 
 
@@ -47,13 +46,14 @@ def signal_gen(n, p, n_classes, p_pattern, length_patterns, noise):
     possible_f = np.logspace(lowest_f, highest_f, n_classes*3)
     possible_f = np.split(possible_f, n_classes)
     mu = 1.  # mean value of the amplitude for each pattern
+    sigma = 0.1
     for k in range(n_classes):
         f = np.random.choice(possible_f[k], size=p_pattern[k])
         # generate a sinusoidal signal, different for the different classes
         sinusoidal = np.zeros((p_pattern[k], length_patterns))
         for j in range(p_pattern[k]):
             sinusoidal[j, :] = np.sin(2 * np.pi * f[j] * np.arange(length_patterns))
-        tmp_const =  mu + np.random.randn(p_pattern[k])
+        tmp_const = 1 #  mu + np.random.randn(p_pattern[k])
         patterns.append(np.multiply(tmp_const, sinusoidal.T).T)
 
     # here we create the signal. the patterns will be shifted through the signal
@@ -84,19 +84,26 @@ def signal_gen(n, p, n_classes, p_pattern, length_patterns, noise):
         random_pos = length_patterns * matrix_x_in_signal + matrix_x_in_segment
         # necessary : we cannot split without control for the #patterns
         # if array split does not result in an equal division
-        idx_pos_patterns = np.array(np.split(idx_all_pos[:-(idx_all_pos.size%patterns[k].shape[0])],
-            patterns[k].shape[0]))
+        modulo_split = idx_all_pos.size%(patterns[k].shape[0])
+        if not modulo_split:
+            idx_pos_patterns = np.array(np.split(idx_all_pos,
+                patterns[k].shape[0]))
+        else:
+            idx_pos_patterns = np.array(np.split(idx_all_pos[:-modulo_split],
+                patterns[k].shape[0]))
 
         for t in range(patterns[k].shape[0]):
             for i in range(samples_per_class):
+                tmp_sample = k * samples_per_class + i
                 for s in range(idx_pos_patterns.shape[1]):
                     start = (random_pos[i, idx_pos_patterns[t, s]])
-                    X[k*samples_per_class+i, start:start+length_patterns] = patterns[k][t, :] * (mu + np.random.randn(1))
+                    # print(start)
+                    X[tmp_sample, start:start+length_patterns] = patterns[k][t, :] * (mu + sigma * np.random.randn(1))
                 y[i] = k
 
     # here we add the gaussian noise
     if noise>0. :
-        X += noise * np.mean(1./p * np.linalg.norm(X, axis=-1)) * np.random.randn(n, p)
+        X += noise * np.random.randn(n, p) # np.mean(1./p * np.linalg.norm(X, axis=-1))
 
     y = y.astype("int32")
 
