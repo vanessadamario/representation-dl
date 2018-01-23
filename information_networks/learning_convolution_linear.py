@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow as tf
 import warnings
-from tensorflow.contrib.layers import flatten, linear
+from sklearn.metrics import accuracy_score
+from tensorflow.contrib.layers import flatten, linear, fully_connected
 
 
 class Model(object):
@@ -13,8 +14,11 @@ class Model(object):
         self.features = None
         self.classes = None
         self.saver = None
+        self.loss = None
         self.output = None
         self.weights_network = []
+        self.curve_loss_val = None
+        self.curve_loss_train = None
 
     def compute_output():
         raise NotImplementedError()
@@ -56,29 +60,43 @@ class Model(object):
 
         self.output = self.compute_output(self.features, self.classes)
 
-        loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
+        self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
             labels=self.y, logits=self.output))
+
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
-        train = optimizer.minimize(loss)
+        train = optimizer.minimize(self.loss)
         init_op = tf.global_variables_initializer()
 
         curve_loss_train = np.array([])
         curve_loss_val = np.array([])
+        # curve_acc_train = np.array([])
+        # curve_acc_val = np.array([])
+
         valid_error = 1e10
 
         self.saver = tf.train.Saver(max_to_keep=1, filename=self.method)
         with tf.Session() as sess:
             sess.run(init_op)
+            count_increment_loss_v = 0
+            start_increment_loss = -1
             for iteration in range(max_iter):
+                # cross entropy minimization
                 sess.run(train, {self.X: X_train, self.y: y_train})
 
-                tmp_loss_train = sess.run(loss, {self.X: X_train, self.y: y_train})
-                curve_loss_train = np.append(curve_loss_train, tmp_loss_train)
+                tmp_loss_train = sess.run(self.loss, {self.X: X_train, self.y: y_train})
+                tmp_loss_val = sess.run(self.loss, {self.X: X_val, self.y: y_val})
 
-                tmp_loss_val = sess.run(loss, {self.X: X_val, self.y: y_val})
+                curve_loss_train = np.append(curve_loss_train, tmp_loss_train)
                 curve_loss_val = np.append(curve_loss_val, tmp_loss_val)
+
                 if valid_error - tmp_loss_val < tol and convergence_crit:
-                    break
+                    if count_increment_loss_v and iteration - start_increment_loss > 1:
+                        count_increment_loss_v = 0
+                    count_increment_loss_v += 1
+                    start_increment_loss = iteration
+                    if count_increment_loss_v > 5:
+                        print("last iteration: " + str(iteration))
+                        break
                 valid_error = tmp_loss_val
                 if iteration == max_iter - 1 and convergence_crit:
                     warnings.warn("Not converged")
@@ -86,6 +104,7 @@ class Model(object):
                 for v in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]
             self.saver.save(sess, self.method)
             sess.close()
+
         self.curve_loss_val = curve_loss_val
         self.curve_loss_train = curve_loss_train
 
@@ -118,7 +137,7 @@ class Model(object):
         """
         with tf.Session() as sess:
             self.saver.restore(sess, self.method)
-            loss_value = sess.run(loss, {self.X: X, self.y: y})
+            loss_value = sess.run(self.loss, {self.X: X, self.y: y})
             sess.close()
         return loss_value
 
@@ -139,22 +158,42 @@ class Linear(Model):
 
 class Convolutional(Model):
     """docstring forConvolutional."""
-    def __init__(self, n_filter, length_filter, stride):
+    def __init__(self, n_filter, length_filter, stride, init_conv_weights=None, init_linear_weights=None):
         super(Convolutional, self).__init__()
         self.n_filter = n_filter
         self.length_filter = length_filter
         self.stride = stride
+        self.init_conv_weights = init_conv_weights
+        self.init_linear_weights = init_linear_weights
         self.method = "convolutional"
+        self.conv_weights = None
 
     def compute_output(self, features, classes):
-        init_conv_weights = 1./ np.sqrt(self.length_filter) * np.ones((
-            self.length_filter, 1, self.n_filter)).astype("float32")
-        self.conv_weights = tf.Variable(init_conv_weights)
+        if self.init_conv_weights is not None:
+            if self.init_conv_weights.shape[0] != self.length_filter or self.init_conv_weights.shape[1]!=self.n_filter:
+                raise ValueError("init matrix dimensions do not match")
+            self.init_conv_weights = self.init_conv_weights.reshape(
+                self.length_filter, 1, self.n_filter).astype("float32")
+        else:
+            x = 1./sqrt(6 * self.n_filter * self.length_filter)
+            self.init_conv_weights = np.random.uniform(-x, x, size=(self.length_filter, 1, self.n_filter)).astype("float32")
+
+        if self.init_linear_weights is not None:
+            if self.init_linear_weights.shape[0] != (self.n_filter * self.features) or self.init_linear_weights.shape[1]!=self.classes:
+                raise ValueError("init matrix dimensions do not match")
+            self.init_linear_weights = self.init_linear_weights.reshape(
+                self.features * self.n_filter, 1, self.classes).astype("float32")
+
+        self.conv_weights = tf.Variable(self.init_conv_weights)
         convolution = tf.nn.conv1d(self.X, filters=self.conv_weights,
             stride=self.stride, padding="SAME")
         flat_convolution = flatten(tf.transpose(convolution, perm=[0, 2, 1]))
-        output = linear(tf.reshape(flat_convolution,
-            [-1, 1, self.n_filter * features]), classes)
+        output = fully_connected(tf.reshape(flat_convolution,
+            [-1, 1, self.n_filter * self.features]), num_outputs=self.classes,
+            activation_fn=None, weights_initializer=tf.constant_initializer(self.init_linear_weights))
+        # output = fully_connected(tf.reshape(flat_convolution, [-1, 1, self.n_filter * features]),
+        #     num_outputs=self.classes, activation_fn=None,
+        #     weights_initializer=tf.constant_initializer(init_linear_weights))
         return output
 
     def fit(self, data, label, lr, convergence_crit, tol,  max_iter):
